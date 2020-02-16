@@ -23,8 +23,51 @@ app.use(function (req, res, next) {
   next()
 });
 
-// 處理 API
 //   API:00 ?API=00&ID=Axxx..xxx 
+//          查詢該身分證號的完整會員資料
+//          成功回應 returnObj: { 
+//            會員資料: [姓名，性別，生日，電話，身分證號，住址，LINE_ID，LINE_頭像，身高，體重，緊急聯絡人，緊急聯絡人電話],
+//          }
+//          失敗回應 returnObj: {
+//            會員資料: [],
+//            報名課程: [],
+//          }
+//
+//   API:01 ?API=01 
+//          查詢所有課程資料
+//          成功回應 returnObj: { 
+//            報名課程: [
+//              {課程編號: "UXXX", 繳費狀態: true, 簽到狀態: true },
+//              {課程編號: "UXXX", 繳費狀態: true, 簽到狀態: true },
+//            ],
+//            到期課程: [
+//              {課程編號: "UXXX", 繳費狀態: true, 簽到狀態: true },
+//              {課程編號: "UXXX", 繳費狀態: true, 簽到狀態: true },
+//            ],
+//          }
+//          失敗回應 returnObj: {
+//            報名課程: [],
+//            到期課程: [],
+//          }
+//
+//   API:02 ?API=02 
+//          查詢所有優惠券資料
+//          成功回應 returnObj: { 
+//            現在優惠券: [
+//              {優惠券編號: "UXXX", 使用狀態: true, 核銷狀態: true },
+//              {優惠券編號: "UXXX", 使用狀態: true, 核銷狀態: true },
+//            ],
+//            到期優惠券: [
+//              {優惠券編號: "UXXX", 使用狀態: true, 核銷狀態: true },
+//              {優惠券編號: "UXXX", 使用狀態: true, 核銷狀態: true },
+//            ],
+//          }
+//          失敗回應 returnObj: {
+//            報名課程: [],
+//            到期課程: [],
+//          }
+//
+//   API:10 ?API=00&ID=Axxx..xxx 
 //          查詢該身分證號參加過的所有團課 
 //          成功回應 returnObj: { 
 //            會員資料: [姓名，性別，生日，電話，身分證號，住址，LINE_ID，LINE_頭像，身高，體重，緊急聯絡人，緊急聯絡人電話],
@@ -43,12 +86,26 @@ app.use(function (req, res, next) {
 //            到期課程: [],
 //          }
 //
-//   API:01 ?API=01&ID=Axxx..xxx 
-//          查詢該身分證號的完整會員資料
+
 //
-//   API:02 ?API=01&ID=Axxx..xxx 
-//          查詢所有課程資料
-//
+//   API:11 ?API=00&ID=Axxx..xxx 
+//          查詢該身分證號使用過的所有優惠券 
+//          成功回應 returnObj: { 
+//            會員資料: [姓名，性別，生日，電話，身分證號，住址，LINE_ID，LINE_頭像，身高，體重，緊急聯絡人，緊急聯絡人電話],
+//            現在優惠券: [
+//              {優惠券編號: "UXXX", 使用狀態: true, 核銷狀態: true },
+//              {優惠券編號: "UXXX", 使用狀態: true, 核銷狀態: true },
+//            ],
+//            到期優惠券: [
+//              {優惠券編號: "UXXX", 使用狀態: true, 核銷狀態: true },
+//              {優惠券編號: "UXXX", 使用狀態: true, 核銷狀態: true },
+//            ],
+//          }
+//          失敗回應 returnObj: {
+//            會員資料: [],
+//            報名課程: [],
+//            到期課程: [],
+//          }
 
 app.get('/', function (req, res) {
   //console.log(req.query);
@@ -66,16 +123,24 @@ app.get('/', function (req, res) {
   
   switch(inputParam.API) {
     case "00":
-      console.log("呼叫 API:00 查詢該身分證號參加過的所有團課");
-      取得會員報名課程(); 
-      break;
-    case "01":
-      console.log("呼叫 API:01 查詢該身分證號的完整會員資料");
+      console.log("呼叫 API:00 查詢該身分證號的完整會員資料");
       取得會員詳細資訊();  
       break; 
-    case "02":
-      console.log("呼叫 API:02 查詢所有課程資料");
+    case "01":
+      console.log("呼叫 API:01 查詢所有課程資料");
       取得課程資料();  
+      break;
+    case "02":
+      console.log("呼叫 API:02 查詢所有優惠券資料");
+      取得優惠券資料();  
+      break;      
+    case "10":
+      console.log("呼叫 API:10 查詢該身分證號參加過的所有團課");
+      取得會員報名課程(); 
+      break;      
+    case "11":
+      console.log("呼叫 API:10 查詢該身分證號使用過所有優惠券");
+      取得會員使用過優惠券(); 
       break;      
     default:
       console.log("呼叫 未知API:"+inputParam.API);
@@ -107,6 +172,101 @@ var database = admin.database(); // 初始資料庫
 
 
 // Express call back functions
+
+ 
+
+async function 取得會員詳細資訊(){
+//  var userName;
+//  var userLineId;
+//  var userPhoneNumber;
+//  var userID;
+  
+  //  return { 
+  //    會員資料: [姓名，性別，生日，電話，身分證號，住址，LINE_ID，LINE_頭像，身高，體重，緊急聯絡人，緊急聯絡人電話],
+  //  }  
+  var returnObj = {
+    會員資料: [],
+  }  
+  
+  // 從身分證號取得 名字，LineId 和 phoneNumber  
+  await database.ref("users/林口運動中心/客戶管理").once("value", snapshot => {
+    //console.log(snapshot.val());
+    var result = snapshot.val();
+    memberData = JSON.parse(result.會員資料);
+  });
+
+  //console.log(memberData);
+  console.log("取得會員資料");  
+  
+  memberData.forEach(function(member, index, array){
+    if (member[4]==inputParam.ID) {
+      //console.log("matched", member[4]);
+//      userName   = member[0];
+//      userLineId = member[6];
+//      userPhoneNumber = member[3];
+//      userID = member[4];
+      
+      returnObj.會員資料 = (member);
+    }
+  });
+  
+  console.log(returnObj);
+  response.send(JSON.stringify(returnObj));  
+}  
+
+async function 取得課程資料(){
+  var userName;
+  var userLineId;
+  var userPhoneNumber;
+  var userID;
+  
+  //  return { 
+  //    報名課程: [
+  //      [課程 ...],  
+  //      [課程 n],
+  //      [課程 n+1],
+  //    ],
+  //    到期課程: [
+  //      [課程 1],
+  //      [課程 2],
+  //      [課程 ...], 
+  //    ],
+  //  }  
+  var returnObj = {
+    報名課程: [],
+    到期課程: [],
+  }  
+  
+  //console.log(userName, userLineId, userPhoneNumber, userID);  
+    
+  await database.ref("users/林口運動中心/團課課程").once("value", snapshot => {
+    //console.log(snapshot.val());
+    var result = snapshot.val();
+    courseData = JSON.parse(result.現在課程);
+    courseHistory = JSON.parse(result.過去課程);
+  }); 
+  
+  //console.log(courseData, courseHistory);
+  console.log("取得課程資料");   
+  
+
+  courseData.forEach(function(nowCourse, nowIndex, nowArray){
+    returnObj.報名課程.push(nowCourse);
+  });
+ 
+    
+  courseHistory.forEach(function(nowCourse, nowIndex, nowArray){
+    returnObj.到期課程.push(nowCourse);
+  });
+ 
+  //console.log(returnObj);
+  response.send(JSON.stringify(returnObj));  
+}  
+
+async function 取得優惠券資料() { 
+  console.log("取得優惠券資料");
+  response.send("取得優惠券資料 API 還沒開放");
+}
 
 async function 取得會員報名課程(){
   var userName;
@@ -226,92 +386,9 @@ async function 取得會員報名課程(){
   
   console.log(returnObj);
   response.send(JSON.stringify(returnObj));  
-}  
+} 
 
-async function 取得會員詳細資訊(){
-//  var userName;
-//  var userLineId;
-//  var userPhoneNumber;
-//  var userID;
-  
-  //  return { 
-  //    會員資料: [姓名，性別，生日，電話，身分證號，住址，LINE_ID，LINE_頭像，身高，體重，緊急聯絡人，緊急聯絡人電話],
-  //  }  
-  var returnObj = {
-    會員資料: [],
-  }  
-  
-  // 從身分證號取得 名字，LineId 和 phoneNumber  
-  await database.ref("users/林口運動中心/客戶管理").once("value", snapshot => {
-    //console.log(snapshot.val());
-    var result = snapshot.val();
-    memberData = JSON.parse(result.會員資料);
-  });
-
-  //console.log(memberData);
-  console.log("取得會員資料");  
-  
-  memberData.forEach(function(member, index, array){
-    if (member[4]==inputParam.ID) {
-      //console.log("matched", member[4]);
-//      userName   = member[0];
-//      userLineId = member[6];
-//      userPhoneNumber = member[3];
-//      userID = member[4];
-      
-      returnObj.會員資料 = (member);
-    }
-  });
-  
-  console.log(returnObj);
-  response.send(JSON.stringify(returnObj));  
-}  
-
-async function 取得課程資料(){
-  var userName;
-  var userLineId;
-  var userPhoneNumber;
-  var userID;
-  
-  //  return { 
-  //    報名課程: [
-  //      [課程 ...],  
-  //      [課程 n],
-  //      [課程 n+1],
-  //    ],
-  //    到期課程: [
-  //      [課程 1],
-  //      [課程 2],
-  //      [課程 ...], 
-  //    ],
-  //  }  
-  var returnObj = {
-    報名課程: [],
-    到期課程: [],
-  }  
-  
-  //console.log(userName, userLineId, userPhoneNumber, userID);  
-    
-  await database.ref("users/林口運動中心/團課課程").once("value", snapshot => {
-    //console.log(snapshot.val());
-    var result = snapshot.val();
-    courseData = JSON.parse(result.現在課程);
-    courseHistory = JSON.parse(result.過去課程);
-  }); 
-  
-  //console.log(courseData, courseHistory);
-  console.log("取得課程資料");   
-  
-
-  courseData.forEach(function(nowCourse, nowIndex, nowArray){
-    returnObj.報名課程.push(nowCourse);
-  });
- 
-    
-  courseHistory.forEach(function(nowCourse, nowIndex, nowArray){
-    returnObj.到期課程.push(nowCourse);
-  });
- 
-  //console.log(returnObj);
-  response.send(JSON.stringify(returnObj));  
-}  
+async function 取得會員使用過優惠券() {
+  console.log("取得會員使用過優惠券");
+  response.send("取得會員使用過優惠券 API 還沒開放");  
+}
