@@ -1,6 +1,7 @@
 // 提供給動健康查詢的 API
+// 北大 uGym 團課系統查詢 API 使用說明文件 https://docs.google.com/document/d/1mW94YuHyvYX0qhB57pkYefEhUa-wElTbyyEskkdqiwI/edit#
 
-var version ="V0.1";
+var version ="V0.2";
 
 var express = require('express');
 var request = require("request");
@@ -23,17 +24,7 @@ app.use(function (req, res, next) {
   next()
 });
 
-//   API:00 ?API=00&ID=Axxx..xxx 
-//          查詢該身分證號的完整會員資料
-//          成功回應 returnObj: { 
-//            會員資料: [姓名，性別，生日，電話，身分證號，住址，LINE_ID，LINE_頭像，身高，體重，緊急聯絡人，緊急聯絡人電話],
-//          }
-//          失敗回應 returnObj: {
-//            會員資料: [],
-//            報名課程: [],
-//          }
-//
-//   API:01 ?API=01 
+//   API:00 ?API=00 
 //          查詢所有課程資料
 //          成功回應 returnObj: { 
 //            報名課程: [
@@ -50,7 +41,7 @@ app.use(function (req, res, next) {
 //            到期課程: [],
 //          }
 //
-//   API:02 ?API=02 
+//   API:01 ?API=01 
 //          查詢所有優惠券資料
 //          成功回應 returnObj: { 
 //            現在優惠券: [
@@ -67,7 +58,17 @@ app.use(function (req, res, next) {
 //            到期課程: [],
 //          }
 //
-//   API:10 ?API=00&ID=Axxx..xxx 
+//   API:10 ?API=10&ID=Axxx..xxx 
+//          查詢該身分證號的完整會員資料
+//          成功回應 returnObj: { 
+//            會員資料: [姓名，性別，生日，電話，身分證號，住址，LINE_ID，LINE_頭像，身高，體重，緊急聯絡人，緊急聯絡人電話],
+//          }
+//          失敗回應 returnObj: {
+//            會員資料: [],
+//            報名課程: [],
+//          }
+//
+//   API:11 ?API=11&ID=Axxx..xxx 
 //          查詢該身分證號參加過的所有團課 
 //          成功回應 returnObj: { 
 //            會員資料: [姓名，性別，生日，電話，身分證號，住址，LINE_ID，LINE_頭像，身高，體重，緊急聯絡人，緊急聯絡人電話],
@@ -85,8 +86,6 @@ app.use(function (req, res, next) {
 //            報名課程: [],
 //            到期課程: [],
 //          }
-//
-
 //
 //   API:11 ?API=00&ID=Axxx..xxx 
 //          查詢該身分證號使用過的所有優惠券 
@@ -123,23 +122,23 @@ app.get('/', function (req, res) {
   
   switch(inputParam.API) {
     case "00":
-      console.log("呼叫 API:00 查詢該身分證號的完整會員資料");
-      取得會員詳細資訊();  
-      break; 
-    case "01":
-      console.log("呼叫 API:01 查詢所有課程資料");
+      console.log("呼叫 API:00 查詢所有課程資料");
       取得課程資料();  
       break;
-    case "02":
-      console.log("呼叫 API:02 查詢所有優惠券資料");
+    case "01":
+      console.log("呼叫 API:01 查詢所有優惠券資料");
       取得優惠券資料();  
-      break;      
+      break;    
     case "10":
-      console.log("呼叫 API:10 查詢該身分證號參加過的所有團課");
+      console.log("呼叫 API:10 查詢該身分證號的完整會員資料");
+      取得會員詳細資訊();  
+      break;       
+    case "11":
+      console.log("呼叫 API:11 查詢該身分證號參加過的所有團課");
       取得會員報名課程(); 
       break;      
-    case "11":
-      console.log("呼叫 API:10 查詢該身分證號使用過所有優惠券");
+    case "12":
+      console.log("呼叫 API:12 查詢該身分證號使用過所有優惠券");
       取得會員使用過優惠券(); 
       break;      
     default:
