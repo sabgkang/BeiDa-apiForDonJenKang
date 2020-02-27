@@ -25,6 +25,11 @@ app.use(function (req, res, next) {
 });
 
 //   API:00 ?API=00 
+//          Echo for keep alove
+//          成功回應 "API00: OK" 
+//          失敗回應 "API00: Failed"
+//
+//   API:01 ?API=01 
 //          查詢所有課程資料
 //          成功回應 returnObj: { 
 //            報名課程: [
@@ -41,7 +46,7 @@ app.use(function (req, res, next) {
 //            到期課程: [],
 //          }
 //
-//   API:01 ?API=01 
+//   API:02 ?API=02 
 //          查詢所有優惠券資料
 //          成功回應 returnObj: { 
 //            現在優惠券: [
@@ -87,7 +92,7 @@ app.use(function (req, res, next) {
 //            到期課程: [],
 //          }
 //
-//   API:11 ?API=00&ID=Axxx..xxx 
+//   API:12 ?API=00&ID=Axxx..xxx 
 //          查詢該身分證號使用過的所有優惠券 
 //          成功回應 returnObj: { 
 //            會員資料: [姓名，性別，生日，電話，身分證號，住址，LINE_ID，LINE_頭像，身高，體重，緊急聯絡人，緊急聯絡人電話],
@@ -122,11 +127,15 @@ app.get('/', function (req, res) {
   
   switch(inputParam.API) {
     case "00":
-      console.log("呼叫 API:00 查詢所有課程資料");
-      取得課程資料();  
+      console.log("呼叫 API:00 Echo for Keep alive");
+      echo();  
       break;
     case "01":
-      console.log("呼叫 API:01 查詢所有優惠券資料");
+      console.log("呼叫 API:01 查詢所有課程資料");
+      取得課程資料();  
+      break;      
+    case "02":
+      console.log("呼叫 API:02 查詢所有優惠券資料");
       取得優惠券資料();  
       break;    
     case "10":
@@ -158,11 +167,11 @@ app.listen(port, function () {
 // Firebase 設定 ===============================
 var admin = require("firebase-admin");
 
-var serviceAccount = require("./webchallenge-c16eb-firebase-adminsdk-brsl0-6086bf706f.json");
+var serviceAccount = require("./ugym-beida-firebase-adminsdk-2zjl2-d22d02bcc3.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://webchallenge-c16eb.firebaseio.com"
+  databaseURL: "https://ugym-beida.firebaseio.com"
 });
 
 
@@ -173,45 +182,22 @@ var database = admin.database(); // 初始資料庫
 // Express call back functions
 
  
+async function echo(){
+  try {
+    await database.ref("users/三峽運動中心/團課課程").once("value", snapshot => {
+      //console.log(snapshot.val());
+      var result = snapshot.val();
+      courseData = JSON.parse(result.現在課程);
+      courseHistory = JSON.parse(result.過去課程);
+    }); 
+  } catch(err) {
+    console.log("API00: Failed");   
+    response.send("API00: Failed");     
+  }
+    console.log("API00: OK");   
+    response.send("API00: OK");  ;  
+}
 
-async function 取得會員詳細資訊(){
-//  var userName;
-//  var userLineId;
-//  var userPhoneNumber;
-//  var userID;
-  
-  //  return { 
-  //    會員資料: [姓名，性別，生日，電話，身分證號，住址，LINE_ID，LINE_頭像，身高，體重，緊急聯絡人，緊急聯絡人電話],
-  //  }  
-  var returnObj = {
-    會員資料: [],
-  }  
-  
-  // 從身分證號取得 名字，LineId 和 phoneNumber  
-  await database.ref("users/林口運動中心/客戶管理").once("value", snapshot => {
-    //console.log(snapshot.val());
-    var result = snapshot.val();
-    memberData = JSON.parse(result.會員資料);
-  });
-
-  //console.log(memberData);
-  console.log("取得會員資料");  
-  
-  memberData.forEach(function(member, index, array){
-    if (member[4]==inputParam.ID) {
-      //console.log("matched", member[4]);
-//      userName   = member[0];
-//      userLineId = member[6];
-//      userPhoneNumber = member[3];
-//      userID = member[4];
-      
-      returnObj.會員資料 = (member);
-    }
-  });
-  
-  console.log(returnObj);
-  response.send(JSON.stringify(returnObj));  
-}  
 
 async function 取得課程資料(){
   var userName;
@@ -238,7 +224,7 @@ async function 取得課程資料(){
   
   //console.log(userName, userLineId, userPhoneNumber, userID);  
     
-  await database.ref("users/林口運動中心/團課課程").once("value", snapshot => {
+  await database.ref("users/三峽運動中心/團課課程").once("value", snapshot => {
     //console.log(snapshot.val());
     var result = snapshot.val();
     courseData = JSON.parse(result.現在課程);
@@ -266,6 +252,45 @@ async function 取得優惠券資料() {
   console.log("取得優惠券資料");
   response.send("取得優惠券資料 API 還沒開放");
 }
+
+async function 取得會員詳細資訊(){
+//  var userName;
+//  var userLineId;
+//  var userPhoneNumber;
+//  var userID;
+  
+  //  return { 
+  //    會員資料: [姓名，性別，生日，電話，身分證號，住址，LINE_ID，LINE_頭像，身高，體重，緊急聯絡人，緊急聯絡人電話],
+  //  }  
+  var returnObj = {
+    會員資料: [],
+  }  
+  
+  // 從身分證號取得 名字，LineId 和 phoneNumber  
+  await database.ref("users/三峽運動中心/客戶管理").once("value", snapshot => {
+    //console.log(snapshot.val());
+    var result = snapshot.val();
+    memberData = JSON.parse(result.會員資料);
+  });
+
+  //console.log(memberData);
+  console.log("取得會員資料");  
+  
+  memberData.forEach(function(member, index, array){
+    if (member[4]==inputParam.ID) {
+      //console.log("matched", member[4]);
+//      userName   = member[0];
+//      userLineId = member[6];
+//      userPhoneNumber = member[3];
+//      userID = member[4];
+      
+      returnObj.會員資料 = (member);
+    }
+  });
+  
+  console.log(returnObj);
+  response.send(JSON.stringify(returnObj));  
+}  
 
 async function 取得會員報名課程(){
   var userName;
@@ -296,7 +321,7 @@ async function 取得會員報名課程(){
   //console.log(inputParam.ID);
   //console.log(userName, userLineId, userPhoneNumber, userID);
   
-  await database.ref("users/林口運動中心/客戶管理").once("value", snapshot => {
+  await database.ref("users/三峽運動中心/客戶管理").once("value", snapshot => {
     //console.log(snapshot.val());
     var result = snapshot.val();
     memberData = JSON.parse(result.會員資料);
@@ -319,7 +344,7 @@ async function 取得會員報名課程(){
   
   //console.log(userName, userLineId, userPhoneNumber, userID);  
     
-  await database.ref("users/林口運動中心/團課課程").once("value", snapshot => {
+  await database.ref("users/三峽運動中心/團課課程").once("value", snapshot => {
     //console.log(snapshot.val());
     var result = snapshot.val();
     courseData = JSON.parse(result.現在課程);
@@ -329,7 +354,7 @@ async function 取得會員報名課程(){
   //console.log(courseData, courseHistory);
   console.log("取得課程資料");   
   
-  await database.ref("users/林口運動中心/課程管理").once("value", snapshot => {
+  await database.ref("users/三峽運動中心/課程管理").once("value", snapshot => {
     //console.log(snapshot.val());
     var result = snapshot.val();
     courseMember = JSON.parse(result.課程會員);
